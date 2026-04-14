@@ -1,0 +1,109 @@
+Problem # 1 
+
+Exploring state and action spaces 
+
+The Cliff Walking environment involves an agent crossing a grid world from start to goal while avoiding falling off a cliff. If the player moves to a cliff location it returns to the start location. The player makes moves until they reach the goal, which ends the episode. Your task is to explore the state and action spaces of this environment. 
+
+• Create an environment instance for Cliff Walking with the environment ID CliffWalking. 
+• Compute the size of the action space and store it in num_actions. 
+• Compute the size of the state space and store it in num_states. 
+
+Solution # 1 
+
+# Create the Cliff Walking environment 
+env = gym.make('CliffWalking') 
+
+# Compute the size of the action space 
+num_actions = env.action_space.n 
+
+# Compute the size of the state space 
+num_states = env.observation_space.n 
+
+print("Number of actions:", num_actions) 
+print("Number of states:", num_states) 
+
+
+Problem # 2 
+
+The Cliff Walking environment has 48 states, numbered from 0 to 47, line by line, from the upper left corner (0) to the lower right corner (47). Your goal is to investigate the structure of transition probabilities and rewards within this setup. Notably, all rewards, including the reward for reaching the goal, are negative in this environment. This design choice emphasizes minimizing the number of steps taken, as each step incurs a penalty, making efficiency a key aspect for designing effective learning algorithms. 
+
+Solution # 2 
+
+# Choose the state 
+state = 35 
+
+# Extract transitions for each state-action pair 
+for action in range(num_actions): 
+    transitions = env.unwrapped.P[state][action] 
+
+    # Print details of each transition 
+    for transition in transitions: 
+        probability, next_state, reward, done = transition 
+
+        print(f"Probability: {probability}, Next State: {next_state}, Reward: {reward}, Done: {done}") 
+
+
+Problem # 3 
+
+Defining a deterministic policy 
+
+In this exercise, you'll be working with a custom environment called MyGridWorld, the same one you've seen in the video. This environment is a grid world where the agent's goal is to reach the diamond as quickly as possible. Your task is to define a policy that guides the agent's behavior as specified in the figure below. 
+
+Actions are represented as: (0 → left, 1 → down, 2 → right, 3 → up). 
+
+The gymnasium library has been imported for you as gym along with the render() function. 
+
+# Create the environment 
+env = gym.make('MyGridWorld', render_mode='rgb_array') 
+state, info = env.reset() 
+
+# Define the policy 
+policy = {0:2, 1:2, 2:1, 3:1, 4:0, 5:0, 6:2, 7:2} 
+
+
+Problem # 4 
+
+The agent's goal is to reach the diamond as quickly as possible. Your task is to define a policy that guides the agent's behavior as specified in the figure below. 
+
+Actions are represented as: (0 → left, 1 → down, 2 → right, 3 → up). 
+
+The gymnasium library has been imported for you as gym along with the render() function. 
+
+# Create the environment 
+env = gym.make('MyGridWorld', render_mode='rgb_array') 
+state, info = env.reset() 
+
+# Define the policy 
+policy = {0:2, 1:2, 2:1, 3:1, 4:0, 5:0, 6:2, 7:2} 
+
+terminated = False 
+
+while not terminated: 
+    # Select action based on policy  
+    action = policy[state] 
+    state, reward, terminated, truncated, info = env.step(action) 
+
+    # Render the environment 
+    render() 
+
+
+Problem # 5 
+
+Computing state-values for a policy 
+
+Using the same deterministic environment MyGridWorld, now you need to evaluate the effectiveness of the policy you defined in the previous exercise. You'll do this by computing the state value function for each state under this policy. 
+
+# Complete the function 
+def compute_state_value(state): 
+    if state == terminal_state: 
+        return 0 
+
+    action = policy[state] 
+    _, next_state, reward, _ = env.unwrapped.P[state][action][0] 
+
+    return reward + gamma * compute_state_value(next_state) 
+
+# Compute all state values  
+state_values = {state: compute_state_value(state) for state in range(num_states)} 
+
+print(state_values)
