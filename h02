@@ -1,0 +1,310 @@
+REINFORCEMENT LEARNING LAB MANUAL
+
+EXPERIMENT 1: POLICY EVALUATION & POLICY IMPROVEMENT
+
+Beginner Level Problem
+
+Problem Statement:
+A city commuter travels daily between Home → Office.
+If the commuter reaches Office, they receive a reward of +10.
+Every commute incurs a traffic cost of −2.
+The commuter always follows the policy Home → Office.
+Discount factor γ = 0.9. Compute the state-value function V(Home) using iterative policy evaluation and show convergence.
+
+Solution Explanation:
+We apply the Bellman Expectation Equation:
+V(s) = R(s, a) + γV(s′)
+
+For Home:
+V(Home) = −2 + 0.9 × 10 = 7
+
+Complete Python Implementation:
+gamma = 0.9
+
+V = {
+    "Home": 0.0,
+    "Office": 10.0
+}
+
+print("Policy Evaluation:")
+for i in range(10):
+    old_value = V["Home"]
+    V["Home"] = -2 + gamma * V["Office"]
+    print(f"Iteration {i+1}: V(Home) = {V['Home']:.4f}")
+
+    if abs(V["Home"] - old_value) < 1e-6:
+        print("Value converged.")
+        break
+
+Explanation:
+- gamma = 0.9: future rewards discounted
+- Office is terminal (fixed value)
+- Home updated using Bellman equation
+- Convergence when value stabilizes
+
+
+Intermediate Level Problem
+
+Problem Statement:
+States: Restaurant, Customer
+Actions:
+- Bike → reward −1
+- Car → reward +5
+
+Q(s,a) = R(s,a) + γV(s′)
+Customer is terminal → V(s′)=0
+
+Code:
+gamma = 0.9
+actions = ["Bike", "Car"]
+Q = {}
+
+for action in actions:
+    if action == "Bike":
+        Q[action] = -1
+    else:
+        Q[action] = 5
+
+print("Q-values:")
+for action, value in Q.items():
+    print(f"Q(Restaurant, {action}) = {value}")
+
+best_action = max(Q, key=Q.get)
+print("Optimal action:", best_action)
+
+
+Advanced Level Problem
+
+Problem:
+States: Idle, Working
+Actions:
+- Start → +8
+- Wait → −1
+
+gamma = 0.9
+states = ["Idle", "Working"]
+actions = ["Start", "Wait"]
+
+policy = {"Idle": "Wait", "Working": "Start"}
+V = {state: 0 for state in states}
+
+def reward(state, action):
+    return 8 if action == "Start" else -1
+
+def next_state(state, action):
+    return "Working" if action == "Start" else "Idle"
+
+for iteration in range(10):
+    for _ in range(10):
+        for s in states:
+            a = policy[s]
+            V[s] = reward(s, a) + gamma * V[next_state(s, a)]
+
+    policy_stable = True
+    for s in states:
+        old_action = policy[s]
+        action_values = {}
+        for a in actions:
+            action_values[a] = reward(s, a) + gamma * V[next_state(s, a)]
+
+        policy[s] = max(action_values, key=action_values.get)
+        if old_action != policy[s]:
+            policy_stable = False
+
+    print(f"Iteration {iteration+1}: Policy = {policy}, V = {V}")
+
+    if policy_stable:
+        break
+
+
+EXPERIMENT 2: MONTE CARLO CONTROL
+
+Beginner Problem
+
+returns = {"Good": [], "Partial": [], "Skip": []}
+V = {"Good": 0, "Partial": 0, "Skip": 0}
+episodes = ["Good", "Partial", "Skip"]
+
+import random
+
+for episode in range(50):
+    state = random.choice(episodes)
+
+    if state == "Good":
+        G = 10
+    elif state == "Partial":
+        G = 3
+    else:
+        G = -5
+
+    returns[state].append(G)
+    V[state] = sum(returns[state]) / len(returns[state])
+
+print(V)
+
+
+Intermediate Problem (Monte Carlo Q-learning)
+
+Q = {"Short": {"Fast": 0, "Slow": 0}}
+returns = {"Short": {"Fast": [], "Slow": []}}
+epsilon = 0.2
+
+for episode in range(100):
+    state = "Short"
+
+    if random.random() < epsilon:
+        action = random.choice(["Fast", "Slow"])
+    else:
+        action = max(Q[state], key=Q[state].get)
+
+    reward = 5 if action == "Fast" else 2
+
+    returns[state][action].append(reward)
+    Q[state][action] = sum(returns[state][action]) / len(returns[state][action])
+
+print(Q)
+
+
+EXPERIMENT 3: SARSA
+
+Q = [[0, 0] for _ in range(5)]
+gamma = 0.9
+alpha = 0.1
+epsilon = 0.1
+
+def choose_action(state):
+    if random.random() < epsilon:
+        return random.choice([0, 1])
+    return max(range(2), key=lambda a: Q[state][a])
+
+for episode in range(100):
+    state = 0
+    action = choose_action(state)
+
+    while state < 4:
+        next_state = state + 1
+        reward = 10 if next_state == 4 else -1
+        next_action = choose_action(next_state)
+
+        td_target = reward + gamma * Q[next_state][next_action]
+        td_error = td_target - Q[state][action]
+        Q[state][action] += alpha * td_error
+
+        state, action = next_state, next_action
+
+print(Q)
+
+
+EXPERIMENT 4: Q-LEARNING
+
+Q = [[0, 0] for _ in range(5)]
+gamma = 0.9
+alpha = 0.1
+
+for episode in range(100):
+    state = 0
+
+    while state < 4:
+        action = random.choice([0, 1])
+        next_state = state + 1
+        reward = 10 if next_state == 4 else -1
+
+        td_target = reward + gamma * max(Q[next_state])
+        td_error = td_target - Q[state][action]
+        Q[state][action] += alpha * td_error
+
+        state = next_state
+
+print(Q)
+
+
+SARSA vs Q-learning:
+- SARSA → On-policy, safer
+- Q-learning → Off-policy, aggressive
+
+
+CURSE OF DIMENSIONALITY
+
+State variables example:
+Temperature = 20
+Time = 24
+Occupancy = 2
+Weather = 5
+Battery = 10
+Appliance = 8
+
+Total states:
+|S| = 20 × 24 × 2 × 5 × 10 × 8 = 384000
+
+With 4 actions:
+Q-values = 1,536,000
+
+Memory:
+1,536,000 × 8 bytes ≈ 12.3 MB
+
+Conclusion:
+State space grows exponentially → infeasible
+
+
+DQN (Deep Q Networks)
+
+Q(s,a) ≈ Qθ(s,a)
+
+Why DQN:
+- Handles large state spaces
+- Works with images
+- Generalizes states
+
+
+FRAME STACKING
+
+s_t = [x_t, x_t-1, x_t-2, x_t-3]
+
+Used to capture:
+- velocity
+- direction
+- acceleration
+
+
+LOSS FUNCTION
+
+If terminal:
+y = r
+
+Else:
+y = r + γ max Q(s′, a)
+
+Loss:
+L = (y − Q(s,a))²
+
+
+TARGET NETWORK
+
+- Online network (θ) learns
+- Target network (θ−) gives stable target
+- Prevents divergence
+
+
+KEY CONCEPTS
+
+- Single frame violates Markov property
+- Leads to POMDP
+- Frame stacking solves it
+
+
+CATASTROPHIC FORGETTING
+
+- New learning overwrites old knowledge
+- Solved using:
+  - Experience Replay
+  - Target Network
+
+
+FINAL CONCLUSION
+
+DQN solves:
+- Curse of dimensionality
+- Instability in learning
+- Lack of generalization
+
+by using neural networks instead of Q-tables
