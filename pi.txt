@@ -1,0 +1,91 @@
+Policy iteration
+Start with a policy → evaluate it → improve it → repeat until optimal
+Policy Evaluation
+V(s)=∑s′P(s′∣s,π(s))[R+γV(s′)]
+Compute value of states under current policy
+
+Policy Improvement
+π(s)=arg⁡max⁡ a ∑s′P(s′∣s,a)[R+γV(s′)]
+
+Initialize policy π randomly
+↓
+Policy Evaluation → get V(s)
+↓
+Policy Improvement → update π
+↓
+Policy stable?
+YES → DONE
+NO → Repeat
+Step 1: Initialize
+Start with any policy (random)
+
+Step 2: Policy Evaluation
+Compute V(s) using the current policy
+Repeat until values converge
+
+Step 3: Policy Improvement
+For each state:
+Try all actions
+Compute value of each action
+Pick best action
+Update policy
+
+Step 4: Check: If policy didn’t change →  STOP, Else → go back to Step 2
+v = {"Home": 0, "Office": 0}
+actions = ["Left", "Right"]
+states = ["Home", "Office"]
+
+
+model = {
+    "Home": {
+        "Left":[(1.0, "Home", -2)], # (p, ns, r) these are for next states
+        "Right":[(1.0,"Office",10)]
+    },
+    "Office":{
+        "Left":[(1.0, "Home", -2)],
+        "Right":[(1.0,"Office",-2)]
+    }
+}
+
+gamma = 0.9
+
+policy = {
+    "Home": "Right",
+    "Office": "Right"
+}
+
+done = False
+while not done:
+  
+  # policy evaluation
+  for i in range(30):
+     for state in states: # this is one sweep but we need till converge
+         action = policy[state]
+         value = 0
+         
+         for prob, ns, r in model[state][action]:
+             value += prob * (r + gamma * v[ns])
+         
+         v[state] = value 
+                     
+     print(v)
+  
+  # policy improvement
+  prev_policy = policy.copy()
+  from numpy import argmax
+  for state in states:
+     v_states = []
+     for action in actions:
+         val = 0
+         for p, ns, r in  model[state][action]:
+            val += p *( r + gamma * v[ns])
+         v_states.append(val)
+     policy[state] = actions[argmax(v_states)]
+  print(policy)
+  
+  if policy == prev_policy:
+    done = True
+
+
+If they ask the Q(s,a) in policy iteration we shouldn’t replace the v(s) with Q(s,a) from the policy iteration step rather they should be in parallel at first compute v(s) then q(s,a) from v(s) using the formula
+Q(s,a)=∑s′P(s′∣s,a)[R(s,a,s′)+γV(s′)
