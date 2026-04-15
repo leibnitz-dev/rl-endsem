@@ -1,0 +1,64 @@
+Value Iteration
+V(s)=maxa​∑s′​P(s′∣s,a)[R(s,a,s′)+γV(s′)]
+Q(s,a)=∑s′P(s′∣s,a)[R(s,a,s′)+γV(s′)] for explicit value iteration 
+Then do max a Q(s,a)
+What each part means:
+s → current state
+a → action
+s′ → next state
+P(s′|s,a) → probability of going to s′
+R(s,a,s′) → reward
+γ (gamma) → discount (0 to 1)
+V(s) → value of state
+
+Repeat until stable
+For each state s:
+Try every possible action a
+For that action:
+Look at all possible next states s′
+Compute:
+probability × (reward + discounted future value)
+Sum those values → gives value of action
+Take the maximum over all action
+Update V(s)
+We can compute both Q(s,a) and v(s) anything we want using the model of the environment or extract the v(s) indirectly using Q(s,a)then after convergence we can get the policy.
+After convergence:
+Optimal value:
+ V∗(s)=max⁡aQ∗(s,a)
+Optimal policy:
+ π∗(s)=arg⁡max⁡aQ∗(s,a)
+π∗(s)=arg⁡max⁡a∑s′P(s′∣s,a)[R(s,a,s′)+γV∗(s′)] using v*(s)
+v = {"Home": 0, "Office": 0}
+actions = ["Left", "Right"]
+states = ["Home", "Office"]
+
+
+model = {
+    "Home": {
+        "Left":[(1.0, "Home", -2)], # (p, ns, r) these are for next states
+        "Right":[(1.0,"Office",10)]
+    },
+    "Office":{
+        "Left":[(1.0, "Home", -2)],
+        "Right":[(1.0,"Office",-2)]
+    }
+}
+
+gamma = 0.9
+
+done = False
+
+#while not done:
+for _ in range(10):
+     for s in states:
+         v_states = []
+         for a in actions:
+             val = 0
+             for _, ns, r in model[s][a]:
+                 val += r + gamma * v[ns]
+             v_states.append(val)
+         print(v_states)
+         v[s] = max(v_states)
+
+print(v)
+ 
